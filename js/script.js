@@ -7,18 +7,29 @@ const remainNumber = document.querySelector(".remaining span");
 const guessMessage = document.querySelector(".message");
 const againButton = document.querySelector(".play-again");
 const guessedLettersList = [];
+let remainingGuess = 8;
+let word = "magnolia";
 
-const word = "Magnolia";
+const getWord = async function () {
+    const newWord = await fetch(
+        "https://gist.githubusercontent.com/skillcrush-curriculum/7061f1d4d3d5bfe47efbfbcfe42bf57e/raw/5ffc447694486e7dea686f34a6c085ae371b43fe/words.txt"
+    )
+    const data = await newWord.text();
+    const wordArray = data.split("\n");
+    const randomIndex = Math.floor(Math.random() * wordArray.length);
+    word = wordArray[randomIndex].trim();
+    updateProgress(word);
+}
+
+getWord();
 
 const updateProgress = function(word) {
-    updateProgressText = [];
+    const updateProgressText = [];
     for (const letter in word) {
         updateProgressText.push("●");
     }
     wordProgress.innerText = updateProgressText.join("");
 }
-
-updateProgress("Magnolia");
 
 guessButton.addEventListener("click", function(e) {
     e.preventDefault();
@@ -56,7 +67,8 @@ const makeGuess = function(letter) {
         guessedLettersList.push(letter);
         updatePlayerGuess(guessedLettersList);
     }
-    updateSolution(guessedLettersList);  
+    updateSolution(guessedLettersList); 
+    remainingGuessCount(letter); 
 }
 
 console.log(guessedLettersList);
@@ -91,5 +103,25 @@ const winCheck = function(){
     if (word.toUpperCase() === wordProgress.innerText) {
         guessMessage.classList.add("win");
         guessMessage.innerHTML = `<p class="highlight">You have guessed the word correctly!</p>`;
+    }
+}
+
+const remainingGuessCount = function(guess){
+    const wordUpper = word.toUpperCase();
+    if (!wordUpper.includes(guess)){
+        remainingGuess -= 1;
+        guessMessage.innerText = "This letter is not a part of the solution";
+    }
+    else {
+        guessMessage.innerText = "This letter is a part of the solution";
+    }
+
+    if (remainingGuess === 0){
+        guessButton.classList.add("hide");
+        guessMessage.innerText = "Game Over!";
+        remain.innerHTML = `You have <span>${remainingGuess}</span> guesses left.`
+    }
+    else {
+        remain.innerHTML = `You have <span>${remainingGuess}</span> guesses left.`
     }
 }
